@@ -1,12 +1,13 @@
-import {stateMixin} from './state.js'
-import Observer from '../observer/index.js'
+import { stateMixin } from "./state.js";
+import Observer from "../observer/index.js";
 
-function Vue (options) {
-  this._isVue = true
-  this.data = options.data
-  new Observer(this.data)
+function Vue(options) {
+  this._isVue = true;
+  this.data = options.data;
+  debugger;
+  new Observer(this.data);
 }
 
-stateMixin(Vue)
+stateMixin(Vue);
 
-export default Vue
+export default Vue;
