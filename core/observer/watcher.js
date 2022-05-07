@@ -1,99 +1,100 @@
-import {isObject} from './util.js'
+import { isObject } from "./util.js";
 
 export default class Watcher {
-  constructor (vm, expOrFn, cb, options) {
-    this.vm = vm
+  constructor(vm, expOrFn, cb, options) {
+    this.vm = vm;
 
     // 新增
     if (options) {
-      this.deep = !!options.deep
+      this.deep = !!options.deep;
     } else {
-      this.deep = false
+      this.deep = false;
     }
 
-    this.deps = []
-    this.depIds = new Set()
-    this.getter = parsePath(expOrFn)
-    this.cb = cb
-    this.value = this.get()
+    this.deps = [];
+    this.depIds = new Set();
+    this.getter = parsePath(expOrFn);
+    this.cb = cb;
+    this.value = this.get();
   }
 
-  get () {
-    window.target = this
-    let value = this.getter.call(this.vm, this.vm)
+  get() {
+    window.target = this;
+    let value = this.getter.call(this.vm, this.vm);
     if (this.deep) {
-      traverse(value)
+      traverse(value);
     }
-    window.target = undefined
-    return value
+    window.target = undefined;
+    return value;
   }
 
-  addDep (dep) {
-    const id = dep.id
+  // 给 监听响应对象 （vm） 调用
+  addDep(dep) {
+    const id = dep.id;
     if (!this.depIds.has(id)) {
-      this.depIds.add(id)
-      this.deps.push(dep)
-      dep.addSub(this)
+      this.depIds.add(id);
+      this.deps.push(dep);
+      dep.addSub(this);
     }
   }
-
-  teardown () {
-    let i = this.deps.length
+  //
+  teardown() {
+    let i = this.deps.length;
     while (i--) {
-      this.deps[i].removeSub(this)
+      this.deps[i].removeSub(this);
     }
   }
 
-  update () {
-    const oldValue = this.value
-    this.value = this.get()
-    this.cb.call(this.vm, this.value, oldValue)
+  update() {
+    const oldValue = this.value;
+    this.value = this.get();
+    this.cb.call(this.vm, this.value, oldValue);
   }
 }
 
 /**
  * Parse simple path.
  */
-const bailRE = /[^\w.$]/
-export function parsePath (path) {
+const bailRE = /[^\w.$]/;
+export function parsePath(path) {
   if (bailRE.test(path)) {
-    return
+    return;
   }
-  const segments = path.split('.')
+  const segments = path.split(".");
   return function (obj) {
     for (let i = 0; i < segments.length; i++) {
-      if (!obj) return
-      obj = obj[segments[i]]
+      if (!obj) return;
+      obj = obj[segments[i]];
     }
-    return obj
-  }
+    return obj;
+  };
 }
 
-const seenObjects = new Set()
-export function traverse (val) {
-  _traverse(val, seenObjects)
-  seenObjects.clear()
+const seenObjects = new Set();
+export function traverse(val) {
+  _traverse(val, seenObjects);
+  seenObjects.clear();
 }
 
-function _traverse (val, seen) {
-  let i, keys
-  const isA = Array.isArray(val)
+function _traverse(val, seen) {
+  let i, keys;
+  const isA = Array.isArray(val);
   if ((!isA && !isObject(val)) || Object.isFrozen(val)) {
-    return
+    return;
   }
   if (val.__ob__) {
-    const depId = val.__ob__.dep.id
+    const depId = val.__ob__.dep.id;
     if (seen.has(depId)) {
-      return
+      return;
     }
-    seen.add(depId)
+    seen.add(depId);
   }
   if (isA) {
-    i = val.length
-    while (i--) _traverse(val[i], seen)
+    i = val.length;
+    while (i--) _traverse(val[i], seen);
   } else {
-    keys = Object.keys(val)
-    i = keys.length
-    while (i--) _traverse(val[keys[i]], seen)
+    keys = Object.keys(val);
+    i = keys.length;
+    while (i--) _traverse(val[keys[i]], seen);
   }
 }
